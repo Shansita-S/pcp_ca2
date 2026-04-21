@@ -9,7 +9,9 @@ const initialState = {
   error: "",
 };
 
+const STUDENT_ID = "E0223003";
 const PASSWORD = "546606";
+const DATA_SET = "setA";
 
 const AppContext = createContext(initialState);
 
@@ -19,26 +21,34 @@ export const AppProvider = ({ children }) => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Step 1: Get token with password
-        const tokenRes = await getToken(PASSWORD);
+        // optional: clear previous error / set loading (only if your reducer supports these)
+        dispatch({ type: "SET_ERROR", payload: "" });
 
-        // Step 2: Fetch dataset using token + dataUrl
-        const response = await getDataset(tokenRes.token, tokenRes.dataUrl);
+        // IMPORTANT: pass all 3 arguments
+        const tokenRes = await getToken(STUDENT_ID, PASSWORD, DATA_SET);
 
-        const safeOrders = Array.isArray(response) ? response : [];
+        if (!tokenRes?.token || !tokenRes?.dataUrl) {
+          throw new Error(
+            `Token response missing token/dataUrl: ${JSON.stringify(tokenRes)}`,
+          );
+        }
+
+        const dataset = await getDataset(tokenRes.token, tokenRes.dataUrl);
+        const safeOrders = Array.isArray(dataset) ? dataset : [];
 
         const normalizedOrders = safeOrders.map((order, index) =>
           normalizeOrder(order, index),
         );
 
-        dispatch({
-          type: "SET_ORDERS",
-          payload: normalizedOrders,
-        });
+        dispatch({ type: "SET_ORDERS", payload: normalizedOrders });
       } catch (error) {
+        console.error("Fetch failed:", error?.response?.data || error);
         dispatch({
           type: "SET_ERROR",
-          payload: error?.response?.data?.message || error?.message || "Failed to load dataset",
+          payload:
+            error?.response?.data?.message ||
+            error?.message ||
+            "Failed to load dataset",
         });
       }
     };
@@ -52,12 +62,7 @@ export const AppProvider = ({ children }) => {
   );
 
   return (
-    <AppContext.Provider
-      value={{
-        ...state,
-        validOrders,
-      }}
-    >
+    <AppContext.Provider value={{ ...state, validOrders }}>
       {children}
     </AppContext.Provider>
   );
