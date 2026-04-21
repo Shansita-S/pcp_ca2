@@ -23,6 +23,32 @@ export const isValidOrder = (order) => {
   return true;
 };
 
+export const extractOrdersFromDataset = (dataset) => {
+  if (Array.isArray(dataset)) {
+    return dataset;
+  }
+
+  if (!dataset || typeof dataset !== "object") {
+    return [];
+  }
+
+  if (Array.isArray(dataset.orders)) {
+    return dataset.orders;
+  }
+
+  if (Array.isArray(dataset.data)) {
+    return dataset.data;
+  }
+
+  if (dataset.data && typeof dataset.data === "object") {
+    if (Array.isArray(dataset.data.orders)) {
+      return dataset.data.orders;
+    }
+  }
+
+  return [];
+};
+
 export const normalizeOrder = (order, index) => {
   const id =
     order?.id ?? order?.orderId ?? order?._id ?? order?.orderID ?? index + 1;
@@ -36,6 +62,10 @@ export const normalizeOrder = (order, index) => {
         : "Unknown",
     items: Array.isArray(order?.items) ? order.items : [],
   };
+};
+
+export const isPendingOrder = (order) => {
+  return String(order?.status || "").toLowerCase() === "pending";
 };
 
 export const getDeliveredOrdersCount = (orders) => {

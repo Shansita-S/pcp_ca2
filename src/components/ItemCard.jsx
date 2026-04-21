@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-const ItemCard = ({ item }) => {
+const ItemCard = ({ item, onMarkDelivered }) => {
   const orderId = item?.orderId ?? item?.id;
   const customerName = item?.customerName || "Unknown";
 
@@ -15,6 +15,11 @@ const ItemCard = ({ item }) => {
         <p>Rating: {item.rating}</p>
       ) : null}
       <Link to={`/orders/${orderId}`}>View Details</Link>
+      {typeof onMarkDelivered === "function" ? (
+        <button type="button" onClick={() => onMarkDelivered(orderId)}>
+          Mark as Delivered
+        </button>
+      ) : null}
     </div>
   );
 };
