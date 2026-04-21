@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, useReducer } from "react";
 import AppReducer from "../reducer/AppReducer";
 import { getDataset, getToken } from "../services/api";
-import { isValidOrder, normalizeOrder } from "../utils/orderUtils";
+import { extractOrdersFromDataset, isValidOrder, normalizeOrder } from "../utils/orderUtils";
 
 const initialState = {
   orders: [],
@@ -21,8 +21,7 @@ export const AppProvider = ({ children }) => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // optional: clear previous error / set loading (only if your reducer supports these)
-        dispatch({ type: "SET_ERROR", payload: "" });
+        dispatch({ type: "SET_LOADING" });
 
         // IMPORTANT: pass all 3 arguments
         const tokenRes = await getToken(STUDENT_ID, PASSWORD, DATA_SET);
@@ -34,7 +33,7 @@ export const AppProvider = ({ children }) => {
         }
 
         const dataset = await getDataset(tokenRes.token, tokenRes.dataUrl);
-        const safeOrders = Array.isArray(dataset) ? dataset : [];
+        const safeOrders = extractOrdersFromDataset(dataset);
 
         const normalizedOrders = safeOrders.map((order, index) =>
           normalizeOrder(order, index),
@@ -61,8 +60,12 @@ export const AppProvider = ({ children }) => {
     [state.orders],
   );
 
+  const markOrderAsDelivered = (orderId) => {
+    dispatch({ type: "MARK_ORDER_DELIVERED", payload: orderId });
+  };
+
   return (
-    <AppContext.Provider value={{ ...state, validOrders }}>
+    <AppContext.Provider value={{ ...state, validOrders, markOrderAsDelivered }}>
       {children}
     </AppContext.Provider>
   );
