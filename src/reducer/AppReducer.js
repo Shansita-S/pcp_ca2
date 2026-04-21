@@ -23,6 +23,14 @@ const AppReducer = (state, action) => {
       };
 
     case "MARK_ORDER_DELIVERED":
+      if (
+        action.payload === undefined ||
+        action.payload === null ||
+        String(action.payload).trim() === ""
+      ) {
+        return state;
+      }
+
       return {
         ...state,
         orders: state.orders.map((order) => {

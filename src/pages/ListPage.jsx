@@ -16,7 +16,7 @@ const ListPage = () => {
 
   return (
     <section>
-      <h1>Pending Orders</h1>
+      <h1>Orders</h1>
       {pendingOrders.map((item) => (
         <ItemCard
           key={String(item.orderId ?? item.id)}
